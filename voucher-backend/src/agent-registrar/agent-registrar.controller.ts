@@ -13,6 +13,7 @@ import { Throttle } from '@nestjs/throttler';
 import { AgentRegistrarService } from './agent-registrar.service';
 import { RegisterAgentDto } from './dto/register-agent.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { SignatureVerifier } from './signature.verifier';
 
 const REGISTER_THROTTLE = { default: { limit: 6, ttl: 3600000 } };
 const PATCH_THROTTLE = { default: { limit: 12, ttl: 3600000 } };
@@ -20,7 +21,10 @@ const GET_THROTTLE = { default: { limit: 20, ttl: 60000 } };
 
 @Controller('agent')
 export class AgentRegistrarController {
-  constructor(private readonly service: AgentRegistrarService) {}
+  constructor(
+    private readonly service: AgentRegistrarService,
+    private readonly verifier: SignatureVerifier,
+  ) {}
 
   @Post('register')
   @Throttle(REGISTER_THROTTLE)
@@ -29,6 +33,12 @@ export class AgentRegistrarController {
     @Ip() ip: string,
     @Res({ passthrough: true }) res: Response,
   ) {
+    await this.verifier.verify({
+      action: 'register',
+      body: { account: body.account, name: body.name, profile: body.profile, ts: body.ts, nonce: body.nonce },
+      signed: { account: body.account, ts: body.ts, nonce: body.nonce, signature: body.signature },
+    });
+
     const result = await this.service.register(body, ip);
     if (result.status === 'pending') {
       res.status(202);
@@ -43,7 +53,12 @@ export class AgentRegistrarController {
 
   @Patch('profile')
   @Throttle(PATCH_THROTTLE)
-  updateProfile(@Body() body: UpdateProfileDto) {
+  async updateProfile(@Body() body: UpdateProfileDto) {
+    await this.verifier.verify({
+      action: 'profile',
+      body: { account: body.account, profile: body.profile, ts: body.ts, nonce: body.nonce },
+      signed: { account: body.account, ts: body.ts, nonce: body.nonce, signature: body.signature },
+    });
     return this.service.updateProfile(body);
   }
 

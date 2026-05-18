@@ -4,8 +4,14 @@ import { validate } from 'class-validator';
 import { RegisterAgentDto } from './register-agent.dto';
 import { UpdateProfileDto } from './update-profile.dto';
 
+const SIGNED = {
+  ts: 1700000000000,
+  nonce: 'nonce-12345678',
+  signature: '0x' + 'a'.repeat(128),
+};
+
 async function validateDto(payload: unknown): Promise<string[]> {
-  const dto = plainToInstance(RegisterAgentDto, payload);
+  const dto = plainToInstance(RegisterAgentDto, { ...SIGNED, ...(payload as object) });
   const errors = await validate(dto as object, { whitelist: true });
   return errors.flatMap((e) =>
     Object.values(e.constraints ?? {}).concat(
@@ -76,6 +82,7 @@ describe('UpdateProfileDto', () => {
   it('rejects when profile is omitted', async () => {
     const dto = plainToInstance(UpdateProfileDto, {
       account: '0x' + 'a'.repeat(64),
+      ...SIGNED,
     });
     const errors = await validate(dto as object, { whitelist: true });
     expect(errors.length).toBeGreaterThan(0);

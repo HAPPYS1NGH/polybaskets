@@ -25,6 +25,7 @@
     "@polkadot/api": "^14.3.1",
     "@polkadot/keyring": "^13.0.0",
     "@polkadot/util": "^13.0.0",
+    "@polkadot/util-crypto": "^13.0.0",
     "@polkadot/wasm-crypto": "^7.3.2",
     "@thenamespace/offchain-manager": "^1.0.13",
     "class-transformer": "^0.5.1",

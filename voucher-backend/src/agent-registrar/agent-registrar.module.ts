@@ -1,11 +1,12 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AgentRegistrarController } from './agent-registrar.controller';
 import { AgentRegistrarService } from './agent-registrar.service';
 import { OffchainManagerClient } from './offchain-manager.client';
 import { VaraAgentReader } from './vara-agent.reader';
 import { AgentReconciler } from './agent-reconciler';
 import { IpRegisterCap } from './ip-register-cap';
+import { SignatureVerifier } from './signature.verifier';
 
 @Module({
   imports: [ConfigModule],
@@ -15,9 +16,14 @@ import { IpRegisterCap } from './ip-register-cap';
     OffchainManagerClient,
     VaraAgentReader,
     AgentReconciler,
+    SignatureVerifier,
     {
       provide: IpRegisterCap,
-      useFactory: () => new IpRegisterCap(5),
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) =>
+        new IpRegisterCap(
+          config.get<number>('agentRegistrar.ipRegisterCap') ?? 5,
+        ),
     },
   ],
   exports: [],

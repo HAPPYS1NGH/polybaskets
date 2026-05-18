@@ -37,6 +37,8 @@ describe('agent-registrar configuration', () => {
       retryIntervalMs: 30000,
       retryMaxAttempts: 288,
       migrationEnabled: true,
+      ipRegisterCap: 5,
+      reconcileIdleIntervalMs: 300000,
     });
   });
 

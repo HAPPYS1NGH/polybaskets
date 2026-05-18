@@ -15,7 +15,10 @@ export type ReconcileSummary = {
 export class AgentReconciler implements OnModuleInit {
   private logger = new Logger(AgentReconciler.name);
   private attempts = new Map<string, number>();
+  private pending = new Set<string>();
   private maxAttempts: number;
+  private idleIntervalMs: number;
+  private lastIdleSweepAt = 0;
 
   constructor(
     private readonly reader: VaraAgentReader,
@@ -24,6 +27,17 @@ export class AgentReconciler implements OnModuleInit {
   ) {
     const configuredMax = this.configService.get<number>('agentRegistrar.retryMaxAttempts');
     this.maxAttempts = typeof configuredMax === 'number' ? configuredMax : 288;
+    this.idleIntervalMs =
+      this.configService.get<number>('agentRegistrar.reconcileIdleIntervalMs') ?? 300000;
+  }
+
+  /**
+   * Service registers an agent address (SS58 or hex) when an inline register
+   * call fell through to 202 pending — the cron then drains it without
+   * scanning all agents.
+   */
+  enqueuePending(varaAddress: string): void {
+    this.pending.add(varaAddress);
   }
 
   async onModuleInit(): Promise<void> {
@@ -42,11 +56,53 @@ export class AgentReconciler implements OnModuleInit {
     );
   }
 
+  /**
+   * Tick strategy:
+   * - Migration mode: scan all agents every 30s (one-shot bulk catch-up).
+   * - Steady state: drain only the in-memory pending queue every 30s, plus
+   *   a slower full-table sweep every `reconcileIdleIntervalMs` (5min default)
+   *   as a safety net for failures that bypassed enqueuePending.
+   */
   @Cron(CronExpression.EVERY_30_SECONDS)
   async reconcileTick(): Promise<void> {
     try {
-      const agents = await this.reader.getAllAgents();
-      await this.reconcileAgents(agents);
+      if (this.configService.get<boolean>('agentRegistrar.migrationEnabled')) {
+        const agents = await this.reader.getAllAgents();
+        await this.reconcileAgents(agents);
+        return;
+      }
+
+      if (this.pending.size > 0) {
+        const drained: AgentInfo[] = [];
+        for (const addr of [...this.pending]) {
+          try {
+            const a = await this.reader.getAgent(addr);
+            if (a) drained.push(a);
+          } catch (e) {
+            this.logger.warn(
+              `pending getAgent failed for ${addr}: ${(e as Error).message}`,
+            );
+          }
+        }
+        if (drained.length > 0) {
+          await this.reconcileAgents(drained);
+          for (const a of drained) {
+            const summary = await this.client
+              .findByVaraAddress(a.address)
+              .catch(() => null);
+            if (summary?.label === a.name) {
+              this.pending.delete(a.address);
+            }
+          }
+        }
+      }
+
+      const now = Date.now();
+      if (now - this.lastIdleSweepAt >= this.idleIntervalMs) {
+        this.lastIdleSweepAt = now;
+        const agents = await this.reader.getAllAgents();
+        await this.reconcileAgents(agents);
+      }
     } catch (e) {
       this.logger.warn(`reconcile tick failed: ${(e as Error).message}`);
     }

@@ -18,6 +18,7 @@ import { isNameAllowed } from './name-rules';
 import { ProfileDto } from './dto/profile.dto';
 import { RegisterAgentDto } from './dto/register-agent.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { AgentReconciler } from './agent-reconciler';
 
 export type RegisterResult =
   | { status: 'ok'; fullName: string; varaAddress: HexString }
@@ -32,6 +33,7 @@ export class AgentRegistrarService {
     private readonly client: OffchainManagerClient,
     private readonly configService: ConfigService,
     private readonly ipCap: IpRegisterCap,
+    private readonly reconciler: AgentReconciler,
   ) {}
 
   async register(dto: RegisterAgentDto, ip: string): Promise<RegisterResult> {
@@ -57,6 +59,7 @@ export class AgentRegistrarService {
     const onChain = await this.pollGetAgent(dto.account);
     if (!onChain) {
       this.logger.log(`pending finality for ${account} -> 202`);
+      this.reconciler.enqueuePending(dto.account);
       return { status: 'pending', varaAddress: account };
     }
 

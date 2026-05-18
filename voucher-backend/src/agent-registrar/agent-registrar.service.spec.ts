@@ -16,6 +16,7 @@ function makeService(opts: {
   service: AgentRegistrarService;
   reader: any;
   client: any;
+  reconciler: any;
 } {
   const reader: any = {
     getAgent: jest.fn(),
@@ -51,13 +52,15 @@ function makeService(opts: {
     },
   };
 
+  const reconciler: any = { enqueuePending: jest.fn() };
   const service = new AgentRegistrarService(
     reader as VaraAgentReader,
     client as OffchainManagerClient,
     config as ConfigService,
     new IpRegisterCap(0),
+    reconciler,
   );
-  return { service, reader, client };
+  return { service, reader, client, reconciler };
 }
 
 describe('AgentRegistrarService.register', () => {

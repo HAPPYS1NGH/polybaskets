@@ -105,6 +105,8 @@ export default () => {
       retryIntervalMs: posInt('AGENT_RETRY_INTERVAL_MS', '30000'),
       retryMaxAttempts: posInt('AGENT_RETRY_MAX_ATTEMPTS', '288'),
       migrationEnabled: bool('MIGRATION_ENABLED', false),
+      ipRegisterCap: nonNegInt('AGENT_REGISTER_IP_CAP', '5'),
+      reconcileIdleIntervalMs: posInt('AGENT_RECONCILE_IDLE_INTERVAL_MS', '300000'),
     },
   };
 };
