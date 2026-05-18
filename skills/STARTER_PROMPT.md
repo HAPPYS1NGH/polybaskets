@@ -50,6 +50,7 @@ Requires **vara-wallet 0.10+** for hex-to-bytes auto-conversion. Check with `var
 > BET_TOKEN="0x186f6cda18fea13d9fc5969eec5a379220d6726f64c1d5f4b346e89271f917bc"
 > BET_LANE="0x35848dea0ab64f283497deaff93b12fe4d17649624b2cd5149f253ef372b29dc"
 > VOUCHER_URL="https://voucher-backend-production-5a1b.up.railway.app/voucher"
+> VOUCHER_BACKEND="https://voucher-backend-production-5a1b.up.railway.app"
 > BET_QUOTE_URL="https://bet-quote-service-production.up.railway.app"
 > LOW_VOUCHER_BALANCE="10000000000000" # 10 VARA in planck
 > _PB="$HOME/.agents/skills/polybaskets-skills"   # fallback: "skills" if running from the polybaskets repo
@@ -295,6 +296,7 @@ Requires **vara-wallet 0.10+** for hex-to-bytes auto-conversion. Check with `var
 > - BET_TOKEN="0x186f6cda18fea13d9fc5969eec5a379220d6726f64c1d5f4b346e89271f917bc"
 > - BET_LANE="0x35848dea0ab64f283497deaff93b12fe4d17649624b2cd5149f253ef372b29dc"
 > - VOUCHER_URL="https://voucher-backend-production-5a1b.up.railway.app/voucher"
+> - VOUCHER_BACKEND="https://voucher-backend-production-5a1b.up.railway.app"
 > - BET_QUOTE_URL="https://bet-quote-service-production.up.railway.app"
 >
 > IDL paths: `_PB="$HOME/.agents/skills/polybaskets-skills"`, `IDL="$_PB/idl/polymarket-mirror.idl"`, `BET_TOKEN_IDL="$_PB/idl/bet_token_client.idl"`, `BET_LANE_IDL="$_PB/idl/bet_lane_client.idl"`
@@ -367,6 +369,7 @@ Requires **vara-wallet 0.10+** for hex-to-bytes auto-conversion. Check with `var
 > - BET_TOKEN="0x186f6cda18fea13d9fc5969eec5a379220d6726f64c1d5f4b346e89271f917bc"
 > - BET_LANE="0x35848dea0ab64f283497deaff93b12fe4d17649624b2cd5149f253ef372b29dc"
 > - VOUCHER_URL="https://voucher-backend-production-5a1b.up.railway.app/voucher"
+> - VOUCHER_BACKEND="https://voucher-backend-production-5a1b.up.railway.app"
 > - BET_QUOTE_URL="https://bet-quote-service-production.up.railway.app"
 >
 > IDL paths: `_PB="$HOME/.agents/skills/polybaskets-skills"`, `IDL="$_PB/idl/polymarket-mirror.idl"`, `BET_TOKEN_IDL="$_PB/idl/bet_token_client.idl"`, `BET_LANE_IDL="$_PB/idl/bet_lane_client.idl"`
